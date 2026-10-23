@@ -18,6 +18,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -72,6 +73,10 @@ public abstract class RenderComponents extends DefaultTask {
     @Input
     public abstract ListProperty<String> getJvmArgs();
 
+    /** Preferences written to the fresh SE user folder before the run. */
+    @Input
+    public abstract MapProperty<String, String> getUserSettings();
+
     @Nested
     public abstract Property<JavaLauncher> getLauncher();
 
@@ -92,7 +97,11 @@ public abstract class RenderComponents extends DefaultTask {
         deleteTree(out);
         deleteTree(work);
         Files.createDirectories(out);
+        // SE reads preferences and installed plug-ins from its user folder,
+        // which only STRANGE_EONS_USER_DIR relocates; a fresh one per run keeps
+        // the developer's own preferences out of the renders.
         Path userFolder = Files.createDirectories(work.resolve("user"));
+        writePreferences(userFolder.resolve("preferences"));
         Path script = work.resolve("render.js");
         Path results = work.resolve("results.tsv");
         Path log = work.resolve("strange-eons.log");
@@ -131,8 +140,6 @@ public abstract class RenderComponents extends DefaultTask {
         cmd.add(MAIN_CLASS);
         cmd.add("--xDisableJreCheck");
         cmd.add("--xDisablePluginLoading");
-        cmd.add("--resfolder");
-        cmd.add(userFolder.toAbsolutePath().toString());
         cmd.add("--glang");
         cmd.add(getGameLanguage().get());
         cmd.add("--ulang");
@@ -145,6 +152,7 @@ public abstract class RenderComponents extends DefaultTask {
         try (var logOut = Files.newOutputStream(log)) {
             getExec().exec(spec -> {
                 spec.setCommandLine(cmd);
+                spec.environment("STRANGE_EONS_USER_DIR", userFolder.toAbsolutePath().toString());
                 spec.setStandardOutput(logOut);
                 spec.setErrorOutput(logOut);
                 spec.setIgnoreExitValue(true);
@@ -178,6 +186,14 @@ public abstract class RenderComponents extends DefaultTask {
         if (!failed.isEmpty()) {
             throw new GradleException(failed.size() + " component(s) failed to render:\n  "
                     + String.join("\n  ", failed) + "\nSee " + log);
+        }
+    }
+
+    private void writePreferences(Path file) throws IOException {
+        java.util.Properties p = new java.util.Properties();
+        p.putAll(getUserSettings().get());
+        try (var out = Files.newOutputStream(file)) {
+            p.store(out, "written by renderComponents");
         }
     }
 

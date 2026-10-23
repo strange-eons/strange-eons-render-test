@@ -3,6 +3,7 @@ package org.strangeeons.gradle.rendertest;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLauncher;
 
@@ -96,4 +97,11 @@ public abstract class RenderTestExtension {
 
     /** Extra JVM arguments for the SE process. */
     public abstract ListProperty<String> getJvmArgs();
+
+    /**
+     * SE preferences for the run, e.g. a plug-in option to render with.
+     * Each run starts from an empty user folder, so nothing else from the
+     * developer's own preferences applies.
+     */
+    public abstract MapProperty<String, String> getUserSettings();
 }

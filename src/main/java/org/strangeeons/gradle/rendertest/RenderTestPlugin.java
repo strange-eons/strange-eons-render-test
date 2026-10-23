@@ -88,6 +88,7 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
             t.getGameLanguage().set(ext.getGameLanguage());
             t.getUiLanguage().set(ext.getUiLanguage());
             t.getJvmArgs().set(ext.getJvmArgs());
+            t.getUserSettings().set(ext.getUserSettings());
             t.getLauncher().set(ext.getLauncher());
             t.getOutputDir().set(buildDir.dir("render-test/actual"));
             t.getWorkDir().set(buildDir.dir("render-test/work"));

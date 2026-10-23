@@ -21,7 +21,8 @@ it already has:
    `seproject`, `*.ts.js` and VCS folders left out. The bundle extension is
    guessed the way SE guesses it (`.seext`, `.seplugin`, `.selibrary`).
 3. **`renderComponents`** starts SE once, hidden:
-   `--plugintest <bundles> --xDisablePluginLoading --resfolder <fresh dir> --run render.js`.
+   `--plugintest <bundles> --xDisablePluginLoading --run render.js`, with
+   `STRANGE_EONS_USER_DIR` pointing at a fresh, empty user folder.
    The script renders saved `.eon` files and/or one default instance of every
    class-map entry of the games you name, and writes one PNG per sheet to
    `build/render-test/actual`.
@@ -32,8 +33,10 @@ it already has:
 5. **`updateRenderMasters`** replaces the current platform's masters with
    the current renders. Other platforms' masters are left alone.
 
-Each run uses a fresh SE user folder, so your installed plug-ins and
-preferences never affect the result.
+Each run uses a fresh SE user folder (via `STRANGE_EONS_USER_DIR`), so your
+installed plug-ins and preferences never affect the result. Set
+`userSettings` to render with specific preferences, e.g. a plug-in option:
+`userSettings.put("my-plugin-option", "yes")`.
 
 ## Usage
 
@@ -83,6 +86,7 @@ strangeEonsRenderTest {
 | `gameLanguage`, `uiLanguage` | `en` |
 | `launcher` | Java 25 toolchain (must be a full JDK, not a headless-only one) |
 | `jvmArgs` | none, added to the two flags SE's own `run` task passes |
+| `userSettings` | empty: SE preferences written to the fresh user folder |
 
 Output names: `components/<path>-<sheet>.png` for `.eon` files and
 `classmap/<GAME>/<entry key>-<sheet>.png` for class-map defaults.
