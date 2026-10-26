@@ -99,6 +99,14 @@ public abstract class RenderTestExtension {
     public abstract ListProperty<String> getJvmArgs();
 
     /**
+     * Whether to render the back faces of DIY components: the odd-numbered
+     * sheets, since every DIY face style pairs each front with its back.
+     * Turn off when backs repeat across components. Other components always
+     * render every sheet. Defaults to {@code true}.
+     */
+    public abstract Property<Boolean> getRenderBacks();
+
+    /**
      * SE preferences for the run, e.g. a plug-in option to render with.
      * Each run starts from an empty user folder, so nothing else from the
      * developer's own preferences applies.

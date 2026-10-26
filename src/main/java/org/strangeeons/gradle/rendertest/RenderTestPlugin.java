@@ -45,6 +45,7 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
         ext.getResolution().convention(150);
         ext.getGameLanguage().convention("en");
         ext.getUiLanguage().convention("en");
+        ext.getRenderBacks().convention(true);
         ext.getLauncher().convention(getToolchains().launcherFor(spec ->
                 spec.getLanguageVersion().set(JavaLanguageVersion.of(25))));
 
@@ -89,6 +90,7 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
             t.getUiLanguage().set(ext.getUiLanguage());
             t.getJvmArgs().set(ext.getJvmArgs());
             t.getUserSettings().set(ext.getUserSettings());
+            t.getRenderBacks().set(ext.getRenderBacks());
             t.getLauncher().set(ext.getLauncher());
             t.getOutputDir().set(buildDir.dir("render-test/actual"));
             t.getWorkDir().set(buildDir.dir("render-test/work"));

@@ -30,6 +30,7 @@ var outDir = new File(prop("rt.out"));
 var componentsDir = prop("rt.components");
 var games = prop("rt.games").split(",").filter(function (g) { return g.length > 0; });
 var dpi = Number(prop("rt.dpi"));
+var backs = prop("rt.backs") != "false";
 var results = new PrintWriter(new OutputStreamWriter(new FileOutputStream(prop("rt.results")), "UTF-8"));
 
 function record(status, name, detail) {
@@ -37,15 +38,24 @@ function record(status, name, detail) {
     results.flush();
 }
 
+// Every DIY face style pairs each front with its back, so backs are the
+// odd-numbered sheets; other components' sheets have no such convention.
+function isBack(gc, index) {
+    return gc instanceof DIY && index % 2 == 1;
+}
+
 function render(gc, name) {
     var sheets = gc.createDefaultSheets();
+    var written = 0;
     for (var i = 0; i < sheets.length; ++i) {
+        if (!backs && isBack(gc, i)) continue;
         var img = sheets[i].paint(RenderTarget.EXPORT, dpi);
         var f = new File(outDir, name + "-" + i + ".png");
         f.getParentFile().mkdirs();
         ImageIO.write(img, "png", f);
+        ++written;
     }
-    return sheets.length;
+    return written;
 }
 
 function attempt(name, factory) {

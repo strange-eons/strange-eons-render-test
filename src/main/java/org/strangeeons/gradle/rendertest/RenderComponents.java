@@ -77,6 +77,10 @@ public abstract class RenderComponents extends DefaultTask {
     @Input
     public abstract MapProperty<String, String> getUserSettings();
 
+    /** Whether DIY components' back faces are rendered. */
+    @Input
+    public abstract Property<Boolean> getRenderBacks();
+
     @Nested
     public abstract Property<JavaLauncher> getLauncher();
 
@@ -133,6 +137,7 @@ public abstract class RenderComponents extends DefaultTask {
         cmd.add("-Drt.components=" + (hasComponents ? getComponents().get().getAsFile().getAbsolutePath() : ""));
         cmd.add("-Drt.games=" + String.join(",", getClassMapGames().get()));
         cmd.add("-Drt.dpi=" + getResolution().get());
+        cmd.add("-Drt.backs=" + getRenderBacks().get());
         cmd.add("-Drt.results=" + results.toAbsolutePath());
         cmd.add("-cp");
         cmd.add(getApplicationClasspath().getFiles().stream().map(File::getAbsolutePath)
