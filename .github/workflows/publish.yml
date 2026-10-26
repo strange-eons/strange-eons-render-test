@@ -43,6 +43,10 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
+          if [ -z "$ORG_GRADLE_PROJECT_signingInMemoryKey" ]; then
+            echo "::error::SIGNING_KEY is not set in the maven-central environment"
+            exit 1
+          fi
           if ! grep -qx "version=${GITHUB_REF_NAME}" gradle.properties; then
             echo "::error::Tag ${GITHUB_REF_NAME} does not match the version in gradle.properties"
             exit 1
