@@ -19,6 +19,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Compares renders with the masters for the current platform
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.TaskAction;
  * magenta-on-grey diff images for mismatches. Warns when the masters were
  * recorded with a different JDK or OS than this run.
  */
+@DisableCachingByDefault(because = "verification task")
 public abstract class VerifyRenders extends DefaultTask {
 
     @InputDirectory

@@ -32,6 +32,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.ExecOperations;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Starts Strange Eons once with the bundles under test, runs the render
@@ -41,6 +42,7 @@ import org.gradle.process.ExecOperations;
  * needs a display. On Linux without {@code DISPLAY} the process is wrapped in
  * {@code xvfb-run}.
  */
+@DisableCachingByDefault(because = "output depends on the Strange Eons build and platform fonts")
 public abstract class RenderComponents extends DefaultTask {
 
     private static final String MAIN_CLASS = "ca.cgjennings.apps.arkham.StrangeEons";

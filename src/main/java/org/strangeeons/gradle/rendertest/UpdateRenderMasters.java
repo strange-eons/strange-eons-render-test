@@ -15,11 +15,13 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Replaces the masters of one platform with the current renders and records
  * the environment they came from. Masters of other platforms are untouched.
  */
+@DisableCachingByDefault(because = "writes to the source tree")
 public abstract class UpdateRenderMasters extends DefaultTask {
 
     @InputDirectory

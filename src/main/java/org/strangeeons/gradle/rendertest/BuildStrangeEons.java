@@ -14,12 +14,14 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.ExecOperations;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Builds the Strange Eons application from a checkout by running the
  * checkout's own Gradle wrapper ({@code :strange-eons-app:installDist}).
  * Always runs; the nested build decides what is up to date.
  */
+@DisableCachingByDefault(because = "the nested build has its own caching")
 public abstract class BuildStrangeEons extends DefaultTask {
 
     @Internal
