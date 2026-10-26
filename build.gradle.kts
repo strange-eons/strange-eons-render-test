@@ -30,7 +30,10 @@ gradlePlugin {
 
 mavenPublishing {
     publishToMavenCentral()
-    signAllPublications()
+    // Snapshots publish unsigned; signing applies only when a key is supplied.
+    if (providers.gradleProperty("signingInMemoryKey").isPresent) {
+        signAllPublications()
+    }
     pom {
         name = rootProject.name
         description = project.description
