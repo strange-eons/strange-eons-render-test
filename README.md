@@ -185,3 +185,12 @@ Linux masters should be kept separate from local Linux runs.
 ## License
 
 TBD.
+
+## Publishing
+
+Pushes to `main` publish a `-SNAPSHOT` to the Maven Central snapshot
+repository. Pushing a `v<version>` tag releases that version to Maven Central.
+Both run in the `maven-central` environment, which holds
+`MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD` (a Central Portal user
+token), plus `SIGNING_KEY` (ASCII-armored private key) and
+`SIGNING_KEY_PASSWORD`.
