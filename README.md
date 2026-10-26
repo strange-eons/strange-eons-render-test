@@ -189,8 +189,10 @@ TBD.
 ## Publishing
 
 Pushes to `main` publish a `-SNAPSHOT` to the Maven Central snapshot
-repository. Pushing a `v<version>` tag releases that version to Maven Central.
-Both run in the `maven-central` environment, which holds
+repository. To release, run `./gradlew release` on a clean, pushed `main`: it
+sets the release version in `gradle.properties`, tags it (e.g. `0.1.0`), bumps
+to the next snapshot and pushes. The tag push releases that version to Maven
+Central. Both run in the `maven-central` environment, which holds
 `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD` (a Central Portal user
 token), plus `SIGNING_KEY` (ASCII-armored private key) and
 `SIGNING_KEY_PASSWORD`.

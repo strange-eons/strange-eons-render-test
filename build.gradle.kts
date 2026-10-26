@@ -1,10 +1,10 @@
 plugins {
     `java-gradle-plugin`
     id("com.vanniktech.maven.publish") version "0.37.0"
+    id("net.researchgate.release") version "3.2.0"
 }
 
 group = "org.strangeeons.gradle"
-version = providers.gradleProperty("releaseVersion").getOrElse("0.1.0-SNAPSHOT")
 description = "Renders Strange Eons components from a local SE checkout and compares them against reference masters."
 
 repositories {

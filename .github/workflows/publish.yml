@@ -1,10 +1,11 @@
 name: Publish
 
-# main publishes a snapshot; a v* tag releases that version.
+# main publishes a snapshot; a release tag (bare version, created by
+# `./gradlew release`) releases that version.
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ['[0-9]*']
 
 permissions:
   contents: read
@@ -29,11 +30,21 @@ jobs:
       - run: ./gradlew check
       - name: Publish snapshot
         if: github.ref_type == 'branch'
-        run: ./gradlew publishToMavenCentral
+        run: |
+          if grep -q '^version=.*-SNAPSHOT$' gradle.properties; then
+            ./gradlew publishToMavenCentral
+          else
+            echo "Not a snapshot version; skipping."
+          fi
       - name: Release
         if: github.ref_type == 'tag'
         # Snapshots are unsigned: an empty key would still enable signing.
         env:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: ./gradlew publishAndReleaseToMavenCentral -PreleaseVersion="${GITHUB_REF_NAME#v}"
+        run: |
+          if ! grep -qx "version=${GITHUB_REF_NAME}" gradle.properties; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match the version in gradle.properties"
+            exit 1
+          fi
+          ./gradlew publishAndReleaseToMavenCentral
