@@ -38,9 +38,9 @@ import org.gradle.work.DisableCachingByDefault;
  * Starts Strange Eons once with the bundles under test, runs the render
  * script, and writes one PNG per sheet to {@link #getOutputDir()}.
  *
- * <p>SE always builds its main window, even in {@code --run} mode, so it
- * needs a display. On Linux without {@code DISPLAY} the process is wrapped in
- * {@code xvfb-run}.
+ * <p>Unless {@link #getHeadless() headless}, SE builds its main window, even in
+ * {@code --run} mode, so it needs a display. On Linux without {@code DISPLAY}
+ * the process is wrapped in {@code xvfb-run}.
  */
 @DisableCachingByDefault(because = "output depends on the Strange Eons build and platform fonts")
 public abstract class RenderComponents extends DefaultTask {
@@ -74,6 +74,10 @@ public abstract class RenderComponents extends DefaultTask {
 
     @Input
     public abstract ListProperty<String> getJvmArgs();
+
+    /** Whether to run SE without opening any windows. */
+    @Input
+    public abstract Property<Boolean> getHeadless();
 
     /** Preferences written to the fresh SE user folder before the run. */
     @Input
@@ -125,7 +129,8 @@ public abstract class RenderComponents extends DefaultTask {
         }
 
         List<String> cmd = new ArrayList<>();
-        if (needsVirtualDisplay()) {
+        boolean headless = getHeadless().get();
+        if (needsVirtualDisplay(headless, System.getProperty("os.name"), System.getenv("DISPLAY"))) {
             cmd.add("xvfb-run");
             cmd.add("--auto-servernum");
             cmd.add("--server-args=-screen 0 1920x1080x24");
@@ -134,6 +139,9 @@ public abstract class RenderComponents extends DefaultTask {
         // Flags SE's own `run` task passes; see strange-eons-app/build.gradle.kts.
         cmd.add("--add-opens=java.desktop/javax.swing.table=ALL-UNNAMED");
         cmd.add("--enable-native-access=ALL-UNNAMED");
+        if (headless) {
+            cmd.add("-Djava.awt.headless=true");
+        }
         cmd.addAll(getJvmArgs().get());
         cmd.add("-Drt.out=" + out.toAbsolutePath());
         cmd.add("-Drt.components=" + (hasComponents ? getComponents().get().getAsFile().getAbsolutePath() : ""));
@@ -204,10 +212,12 @@ public abstract class RenderComponents extends DefaultTask {
         }
     }
 
-    private static boolean needsVirtualDisplay() {
-        String os = System.getProperty("os.name").toLowerCase();
+    static boolean needsVirtualDisplay(boolean headless, String osName, String display) {
+        if (headless) {
+            return false;
+        }
+        String os = osName.toLowerCase();
         boolean x11 = !os.startsWith("windows") && !os.startsWith("mac");
-        String display = System.getenv("DISPLAY");
         return x11 && (display == null || display.isEmpty());
     }
 

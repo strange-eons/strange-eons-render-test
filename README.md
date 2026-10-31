@@ -85,6 +85,7 @@ strangeEonsRenderTest {
 | `resolution` | 150 ppi |
 | `gameLanguage`, `uiLanguage` | `en` |
 | `launcher` | Java 25 toolchain (must be a full JDK, not a headless-only one) |
+| `headless` | `-PrenderTestHeadless`, else `false`; `true` runs SE with no windows or display |
 | `jvmArgs` | none, added to the two flags SE's own `run` task passes |
 | `userSettings` | empty: SE preferences written to the fresh user folder |
 | `renderBacks` | `true`; `false` skips DIY back faces (odd-numbered sheets) |
@@ -129,10 +130,11 @@ a plug-in change.
 
 ## Requirements and limits
 
-- **A display.** SE builds its main window even in `--run` mode. On Linux
-  without `DISPLAY` the plugin wraps SE in `xvfb-run`, which must be
-  installed. macOS and Windows always have a display. A truly headless mode
-  needs a separate startup path in SE core.
+- **A display, unless `headless`.** SE normally builds its main window even in
+  `--run` mode. On Linux without `DISPLAY` the plugin wraps SE in `xvfb-run`,
+  which must be installed. macOS and Windows always have a display. Set
+  `headless` to run with no windows or display. This needs an SE build with
+  headless `--run`, and extensions start but other plug-ins do not.
 - **Library bundles must be listed.** SE does not resolve `catalog-requires`
   for bundles passed with `--plugintest`, so add required libraries (for
   example the GraalJS language bundle) to `bundles`.

@@ -46,6 +46,10 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
         ext.getGameLanguage().convention("en");
         ext.getUiLanguage().convention("en");
         ext.getRenderBacks().convention(true);
+        ext.getHeadless().convention(project.getProviders().gradleProperty("renderTestHeadless")
+                .map(Boolean::parseBoolean).orElse(false));
+        project.getTasks().withType(RenderComponents.class).configureEach(t ->
+                t.getHeadless().convention(ext.getHeadless()));
         ext.getLauncher().convention(getToolchains().launcherFor(spec ->
                 spec.getLanguageVersion().set(JavaLanguageVersion.of(25))));
 

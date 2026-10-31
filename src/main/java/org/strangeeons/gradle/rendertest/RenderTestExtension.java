@@ -95,6 +95,13 @@ public abstract class RenderTestExtension {
      */
     public abstract Property<JavaLauncher> getLauncher();
 
+    /**
+     * Whether to run Strange Eons without opening any windows. This requires a
+     * Strange Eons build that supports headless {@code --run}. Defaults to
+     * {@code -PrenderTestHeadless}, or else {@code false}.
+     */
+    public abstract Property<Boolean> getHeadless();
+
     /** Extra JVM arguments for the SE process. */
     public abstract ListProperty<String> getJvmArgs();
 
