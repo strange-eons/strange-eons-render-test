@@ -17,7 +17,7 @@ import org.gradle.jvm.toolchain.JavaLauncher;
  *     pluginFolder = file("MyGame/MyGame")      // an SE plug-in project folder, or
  *     bundles.from(tasks.named("shadowJar"))   // bundles built some other way
  *     classMapGames.add("MYGAME")              // render a default of each class-map entry
- *     components = file("src/renderTest/components")  // and/or saved .eon files
+ *     components = file("src/renderTest/components")  // and/or saved .eon/.eont files
  * }
  * </pre>
  */
@@ -53,7 +53,8 @@ public abstract class RenderTestExtension {
     public abstract ConfigurableFileCollection getBundles();
 
     /**
-     * Folder of saved {@code .eon} files to render (searched recursively).
+     * Folder of saved {@code .eon} and {@code .eont} files to render (searched
+     * recursively). Text saves need a Strange Eons build that reads them.
      * Optional.
      */
     public abstract DirectoryProperty getComponents();

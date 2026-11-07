@@ -72,9 +72,12 @@ function attempt(name, factory) {
     }
 }
 
-// Saved components, named by their path relative to the components folder.
+// Saved components (.eon, or .eont text saves), named by their path relative
+// to the components folder without the extension.
+var COMPONENT_FILE = /\.eont?$/i;
+
 function renderFile(f, relative) {
-    var name = "components/" + relative.substring(0, relative.length - 4);
+    var name = "components/" + relative.replace(COMPONENT_FILE, "");
     attempt(name, function () {
         var gc = ResourceKit.getGameComponentFromFile(f, false);
         if (gc == null) throw new Error("could not read " + f);
@@ -91,7 +94,7 @@ function walk(dir, prefix) {
         var n = String(f.getName());
         if (f.isDirectory()) {
             walk(f, prefix + n + "/");
-        } else if (n.toLowerCase().endsWith(".eon")) {
+        } else if (COMPONENT_FILE.test(n)) {
             renderFile(f, prefix + n);
         }
     }

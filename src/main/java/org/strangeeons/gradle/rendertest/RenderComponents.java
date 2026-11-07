@@ -10,6 +10,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -298,15 +299,23 @@ public abstract class RenderComponents extends DefaultTask {
         return new Summary(ok, failed, skipped);
     }
 
-    /** Saved components under {@code dir}, as sorted relative paths with {@code /}. */
+    /**
+     * Saved components ({@code .eon}, or {@code .eont} text saves) under
+     * {@code dir}, as sorted relative paths with {@code /}.
+     */
     static List<String> listComponents(Path dir) throws IOException {
         try (Stream<Path> s = Files.walk(dir)) {
             return s.filter(Files::isRegularFile)
-                    .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".eon"))
+                    .filter(p -> isComponentFile(p.getFileName().toString()))
                     .map(p -> dir.relativize(p).toString().replace(File.separatorChar, '/'))
                     .sorted()
                     .toList();
         }
+    }
+
+    static boolean isComponentFile(String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        return lower.endsWith(".eon") || lower.endsWith(".eont");
     }
 
     /** Deals {@code items} out in turn, so each part gets a mix of folders. */

@@ -46,7 +46,12 @@ class RenderComponentsTest {
         Files.writeString(dir.resolve("a.EON"), "");
         Files.writeString(dir.resolve("b/one.eon"), "");
         Files.writeString(dir.resolve("b/notes.txt"), "");
-        assertEquals(List.of("a.EON", "b/c/two.eon", "b/one.eon"), RenderComponents.listComponents(dir));
+        Files.writeString(dir.resolve("b/text.eont"), "");
+        Files.writeString(dir.resolve("b/upper.EONT"), "");
+        Files.writeString(dir.resolve("b/other.toml"), "");
+        Files.writeString(dir.resolve("b/text.eont.bak"), "");
+        assertEquals(List.of("a.EON", "b/c/two.eon", "b/one.eon", "b/text.eont", "b/upper.EONT"),
+                RenderComponents.listComponents(dir));
     }
 
     @Test

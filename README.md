@@ -23,7 +23,7 @@ it already has:
 3. **`renderComponents`** starts SE once, hidden:
    `--plugintest <bundles> --xDisablePluginLoading --run render.js`, with
    `STRANGE_EONS_USER_DIR` pointing at a fresh, empty user folder.
-   The script renders saved `.eon` files and/or one default instance of every
+   The script renders saved `.eon` and `.eont` files and/or one default instance of every
    class-map entry of the games you name, and writes one PNG per sheet to
    `build/render-test/actual`.
 4. **`verifyRenders`** (part of `check`) compares them with the masters for
@@ -91,7 +91,8 @@ strangeEonsRenderTest {
 | `userSettings` | empty: SE preferences written to the fresh user folder |
 | `renderBacks` | `true`; `false` skips DIY back faces (odd-numbered sheets) |
 
-Output names: `components/<path>-<sheet>.png` for `.eon` files and
+Output names: `components/<path>-<sheet>.png` for `.eon` and `.eont` files
+(`x.eon` and `x.eont` render under the same name), and
 `classmap/<GAME>/<entry key>-<sheet>.png` for class-map defaults. Sheets
 keep their index when backs are skipped, so fronts are `-0`, `-2` and so on.
 
