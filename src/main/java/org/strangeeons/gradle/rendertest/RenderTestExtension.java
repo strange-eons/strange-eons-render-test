@@ -102,6 +102,13 @@ public abstract class RenderTestExtension {
      */
     public abstract Property<Boolean> getHeadless();
 
+    /**
+     * How many Strange Eons processes each render task starts. Saved
+     * components are split between them. Defaults to
+     * {@code -PrenderTestForks}, or else 1.
+     */
+    public abstract Property<Integer> getForks();
+
     /** Extra JVM arguments for the SE process. */
     public abstract ListProperty<String> getJvmArgs();
 

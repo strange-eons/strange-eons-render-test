@@ -8,7 +8,10 @@
  *   DONE
  *
  * The harness treats a missing DONE line as a crash. Configuration comes
- * from system properties set by the Gradle task (rt.*).
+ * from system properties set by the Gradle task (rt.*). When rt.list names
+ * a file, only the components it lists (paths relative to rt.components,
+ * one per line) are rendered; otherwise the whole folder is. rt.classmap
+ * set to false skips the class-map entries.
  */
 importClass(java.io.File);
 importClass(java.io.PrintWriter);
@@ -28,7 +31,8 @@ function prop(k) {
 
 var outDir = new File(prop("rt.out"));
 var componentsDir = prop("rt.components");
-var games = prop("rt.games").split(",").filter(function (g) { return g.length > 0; });
+var listFile = prop("rt.list");
+var games = prop("rt.classmap") == "false" ? [] : prop("rt.games").split(",").filter(function (g) { return g.length > 0; });
 var dpi = Number(prop("rt.dpi"));
 var backs = prop("rt.backs") != "false";
 var results = new PrintWriter(new OutputStreamWriter(new FileOutputStream(prop("rt.results")), "UTF-8"));
@@ -69,6 +73,15 @@ function attempt(name, factory) {
 }
 
 // Saved components, named by their path relative to the components folder.
+function renderFile(f, relative) {
+    var name = "components/" + relative.substring(0, relative.length - 4);
+    attempt(name, function () {
+        var gc = ResourceKit.getGameComponentFromFile(f, false);
+        if (gc == null) throw new Error("could not read " + f);
+        return gc;
+    });
+}
+
 function walk(dir, prefix) {
     var kids = dir.listFiles();
     if (kids == null) return;
@@ -79,19 +92,26 @@ function walk(dir, prefix) {
         if (f.isDirectory()) {
             walk(f, prefix + n + "/");
         } else if (n.toLowerCase().endsWith(".eon")) {
-            var name = "components/" + prefix + n.substring(0, n.length - 4);
-            attempt(name, function () {
-                var gc = ResourceKit.getGameComponentFromFile(f, false);
-                if (gc == null) throw new Error("could not read " + f);
-                return gc;
-            });
+            renderFile(f, prefix + n);
         }
+    }
+}
+
+function renderList(dir, list) {
+    var lines = java.nio.file.Files.readAllLines(new File(list).toPath(), java.nio.charset.StandardCharsets.UTF_8);
+    for (var i = 0; i < lines.size(); ++i) {
+        var relative = String(lines.get(i));
+        if (relative.length > 0) renderFile(new File(dir, relative), relative);
     }
 }
 
 try {
     if (componentsDir.length > 0) {
-        walk(new File(componentsDir), "");
+        if (listFile.length > 0) {
+            renderList(new File(componentsDir), listFile);
+        } else {
+            walk(new File(componentsDir), "");
+        }
     }
 
     // One default instance of each class-map entry for the requested games.

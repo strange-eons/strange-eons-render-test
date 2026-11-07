@@ -48,8 +48,12 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
         ext.getRenderBacks().convention(true);
         ext.getHeadless().convention(project.getProviders().gradleProperty("renderTestHeadless")
                 .map(Boolean::parseBoolean).orElse(false));
-        project.getTasks().withType(RenderComponents.class).configureEach(t ->
-                t.getHeadless().convention(ext.getHeadless()));
+        ext.getForks().convention(project.getProviders().gradleProperty("renderTestForks")
+                .map(Integer::parseInt).orElse(1));
+        project.getTasks().withType(RenderComponents.class).configureEach(t -> {
+            t.getHeadless().convention(ext.getHeadless());
+            t.getForks().convention(ext.getForks());
+        });
         ext.getLauncher().convention(getToolchains().launcherFor(spec ->
                 spec.getLanguageVersion().set(JavaLanguageVersion.of(25))));
 

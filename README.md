@@ -86,6 +86,7 @@ strangeEonsRenderTest {
 | `gameLanguage`, `uiLanguage` | `en` |
 | `launcher` | Java 25 toolchain (must be a full JDK, not a headless-only one) |
 | `headless` | `-PrenderTestHeadless`, else `false`; `true` runs SE with no windows or display |
+| `forks` | `-PrenderTestForks`, else 1; SE processes per render task, which split the `.eon` files (class-map entries stay in the first) |
 | `jvmArgs` | none, added to the two flags SE's own `run` task passes |
 | `userSettings` | empty: SE preferences written to the fresh user folder |
 | `renderBacks` | `true`; `false` skips DIY back faces (odd-numbered sheets) |
