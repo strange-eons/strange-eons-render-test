@@ -1,6 +1,7 @@
 package org.strangeeons.gradle.rendertest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.image.BufferedImage;
@@ -59,5 +60,51 @@ class ImageComparatorTest {
         png("actual/a.png", 1, 1, 0xff000000);
         List<ImageComparator.Result> r = ImageComparator.compare(tmp.resolve("actual"), tmp.resolve("nope"), tmp.resolve("diffs"));
         assertEquals(ImageComparator.Kind.NO_MASTER, r.get(0).kind());
+    }
+
+    @Test
+    void diffMarksOnlyDifferingPixels() throws IOException {
+        png("actual/a.png", 3, 2, 0xff000000);
+        png("masters/a.png", 3, 2, 0xff000000);
+        BufferedImage changed = ImageIO.read(tmp.resolve("actual/a.png").toFile());
+        changed.setRGB(1, 1, 0xffffffff);
+        ImageIO.write(changed, "png", tmp.resolve("actual/a.png").toFile());
+
+        ImageComparator.Result r = ImageComparator.compare(tmp.resolve("actual"), tmp.resolve("masters"),
+                tmp.resolve("diffs")).get(0);
+        assertEquals("1 pixels differ (16.667%)", r.detail());
+        BufferedImage diff = ImageIO.read(tmp.resolve("diffs/a.png").toFile());
+        assertEquals(0xffff00ff, diff.getRGB(1, 1));
+        assertEquals(0x60808080, diff.getRGB(0, 0));
+    }
+
+    @Test
+    void resultsAreInPathOrder() throws IOException {
+        for (int i = 0; i < 40; ++i) {
+            png(String.format("actual/%02d.png", i), 8, 8, 0xff000000 | i);
+            png(String.format("masters/%02d.png", i), 8, 8, 0xff000000 | i);
+        }
+        List<String> paths = ImageComparator.compare(tmp.resolve("actual"), tmp.resolve("masters"),
+                tmp.resolve("diffs")).stream().map(ImageComparator.Result::path).toList();
+        assertEquals(paths.stream().sorted().toList(), paths);
+        assertEquals(40, paths.size());
+    }
+
+    @Test
+    void unreadableImageFails() throws IOException {
+        png("masters/bad.png", 1, 1, 0xff000000);
+        Files.createDirectories(tmp.resolve("actual"));
+        Files.writeString(tmp.resolve("actual/bad.png"), "not a png");
+        IOException e = assertThrows(IOException.class, () -> ImageComparator.compare(tmp.resolve("actual"),
+                tmp.resolve("masters"), tmp.resolve("diffs")));
+        assertTrue(e.getMessage().contains("not a readable image"), e.getMessage());
+    }
+
+    @Test
+    void parallelismIsBoundedByProcessorsAndMemory() {
+        assertEquals(8, ImageComparator.parallelism(8, 4L << 30));
+        assertEquals(5, ImageComparator.parallelism(8, 512L << 20));
+        assertEquals(1, ImageComparator.parallelism(8, 16L << 20));
+        assertEquals(1, ImageComparator.parallelism(1, 4L << 30));
     }
 }
