@@ -1,5 +1,6 @@
 package org.strangeeons.gradle.rendertest;
 
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -40,14 +41,21 @@ final class ImageComparator {
      * mismatch to {@code diffs}. Results are in path order.
      */
     static List<Result> compare(Path actual, Path masters, Path diffs) throws IOException {
-        TreeSet<String> names = new TreeSet<>();
-        names.addAll(pngs(actual));
+        return compare(actual, masters, diffs, MasterPlan.SAME_PATH);
+    }
+
+    /**
+     * Compares every PNG under {@code actual} with the master the plan gives
+     * it. A master that no render has at its own path was not rendered.
+     */
+    static List<Result> compare(Path actual, Path masters, Path diffs, MasterPlan plan) throws IOException {
+        TreeSet<String> names = new TreeSet<>(pngs(actual));
         names.addAll(pngs(masters));
         ForkJoinPool pool = new ForkJoinPool(parallelism(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().maxMemory()));
         try {
             return pool.submit(() -> names.parallelStream().map(n -> {
                 try {
-                    return compare(n, actual, masters, diffs);
+                    return compare(n, actual, masters, diffs, plan);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -70,15 +78,18 @@ final class ImageComparator {
         return (int) Math.max(1, Math.min(processors, maxMemory / BYTES_PER_COMPARISON));
     }
 
-    private static Result compare(String n, Path actual, Path masters, Path diffs) throws IOException {
+    private static Result compare(String n, Path actual, Path masters, Path diffs, MasterPlan plan)
+            throws IOException {
         Path a = actual.resolve(n);
-        Path m = masters.resolve(n);
-        if (!Files.exists(m)) {
-            return new Result(n, Kind.NO_MASTER, "no master image");
-        }
         if (!Files.exists(a)) {
             return new Result(n, Kind.NOT_RENDERED, "master exists but nothing was rendered");
         }
+        String master = plan.masterFor(n);
+        Path m = masters.resolve(master);
+        if (!Files.exists(m)) {
+            return new Result(n, Kind.NO_MASTER, master.equals(n) ? "no master image" : "no master image " + master);
+        }
+        Rectangle mask = plan.maskFor(n);
         BufferedImage ai = read(a);
         BufferedImage mi = read(m);
         int w = ai.getWidth();
@@ -94,7 +105,7 @@ final class ImageComparator {
             ai.getRGB(0, y, w, 1, ar, 0, w);
             mi.getRGB(0, y, w, 1, mr, 0, w);
             for (int x = 0; x < w; ++x) {
-                if (ar[x] != mr[x]) {
+                if (ar[x] != mr[x] && !masked(mask, x, y)) {
                     ++differing;
                 }
             }
@@ -107,7 +118,7 @@ final class ImageComparator {
             ai.getRGB(0, y, w, 1, ar, 0, w);
             mi.getRGB(0, y, w, 1, mr, 0, w);
             for (int x = 0; x < w; ++x) {
-                ar[x] = ar[x] != mr[x] ? 0xffff00ff : faded(ar[x]);
+                ar[x] = ar[x] != mr[x] && !masked(mask, x, y) ? 0xffff00ff : faded(ar[x]);
             }
             diff.setRGB(0, y, w, 1, ar, 0, w);
         }
@@ -116,6 +127,10 @@ final class ImageComparator {
         ImageIO.write(diff, "png", d.toFile());
         double pct = 100.0 * differing / ((double) w * h);
         return new Result(n, Kind.DIFFERENT, String.format("%d pixels differ (%.3f%%)", differing, pct));
+    }
+
+    private static boolean masked(Rectangle mask, int x, int y) {
+        return mask != null && mask.contains(x, y);
     }
 
     /** Greyed, translucent copy of a pixel so magenta differences stand out. */

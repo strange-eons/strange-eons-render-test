@@ -107,4 +107,30 @@ class ImageComparatorTest {
         assertEquals(1, ImageComparator.parallelism(8, 16L << 20));
         assertEquals(1, ImageComparator.parallelism(1, 4L << 30));
     }
+
+    @Test
+    void sharedMasterIsComparedOutsideItsMask() throws IOException {
+        png("actual/c/a-0.png", 4, 4, 0xff000000);
+        png("masters/c/a-0.png", 4, 4, 0xff000000);
+        png("actual/c/a-1.png", 4, 4, 0xff000000);
+        BufferedImage back = ImageIO.read(tmp.resolve("actual/c/a-1.png").toFile());
+        back.setRGB(0, 0, 0xffffffff);
+        ImageIO.write(back, "png", tmp.resolve("actual/c/a-1.png").toFile());
+        png("actual/c/b-1.png", 4, 4, 0xff000000);
+
+        MasterPlan plan = new MasterPlan("-1.png", "-0.png", List.of(),
+                Map.of("c/a-*", new java.awt.Rectangle(0, 0, 1, 1)));
+        Map<String, ImageComparator.Result> r = ImageComparator.compare(tmp.resolve("actual"), tmp.resolve("masters"),
+                tmp.resolve("diffs"), plan).stream()
+                .collect(Collectors.toMap(ImageComparator.Result::path, x -> x));
+        assertEquals(ImageComparator.Kind.MATCH, r.get("c/a-1.png").kind());
+        assertEquals(ImageComparator.Kind.NO_MASTER, r.get("c/b-1.png").kind());
+        assertEquals("no master image c/b-0.png", r.get("c/b-1.png").detail());
+
+        // unmasked, the same pixel differs
+        MasterPlan unmasked = new MasterPlan("-1.png", "-0.png", List.of(), Map.of());
+        assertEquals(ImageComparator.Kind.DIFFERENT, ImageComparator.compare(tmp.resolve("actual"),
+                tmp.resolve("masters"), tmp.resolve("diffs"), unmasked).stream()
+                .filter(x -> x.path().equals("c/a-1.png")).findFirst().orElseThrow().kind());
+    }
 }

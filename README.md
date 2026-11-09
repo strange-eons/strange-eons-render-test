@@ -26,6 +26,8 @@ it already has:
    the platform the build runs on, `src/renderTest/masters/<platform>/`.
    Any differing pixel, size change, missing master or missing render fails
    the build. Magenta-on-grey diff images go to `build/render-test/diffs`.
+   A script error that SE reports and recovers from (`Uncaught ...` in its
+   log) fails the render as well.
 4. **`updateRenderMasters`** replaces the current platform's masters with
    the current renders. Other platforms' masters are left alone.
 
@@ -92,6 +94,71 @@ Output names: `components/<path>-<sheet>.png` for `.eon` and `.eont` files
 (`x.eon` and `x.eont` render under the same name), and
 `classmap/<GAME>/<entry key>-<sheet>.png` for class-map defaults. Sheets
 keep their index when backs are skipped, so fronts are `-0`, `-2` and so on.
+
+## More render sets
+
+`renderSets` adds sets of renders with their own components, masters and
+preferences, each checked like the main set. A set named `inkSaver` adds
+`renderInkSaver`, `verifyInkSaverRenders` (part of `check`) and
+`updateInkSaverRenderMasters`:
+
+```kotlin
+strangeEonsRenderTest {
+    renderSets.register("inkSaver") {
+        components = file("src/renderTest/flexible")
+        masters = file("src/renderTest/ink-saver-masters")
+        userSettings.put("render-as-prototype", "yes")   // added to the extension's
+    }
+}
+```
+
+When some renders should repeat others, such as the back of a card that shows
+its front's face again, `sharedMasters` checks them against the other
+render's master instead of recording their own. Masks leave out the regions
+where the two may differ; the first matching mask applies:
+
+```kotlin
+sharedMasters {
+    renderSuffix = "-1.png"                     // a back ...
+    masterSuffix = "-0.png"                     // ... is checked against its front
+    excludes.add("components/key/*")            // backs with masters of their own
+    mask("components/act/reversed-1.png", 988, 718, 45, 22)
+    mask("components/act/*", 570, 718, 45, 22)  // x, y, width, height in pixels
+}
+```
+
+## Running scripts
+
+`RunScript` runs a script in SE with the bundles under test and the
+extension's settings, and fails on the same errors as a render. The script
+reads its settings from Java system properties: `systemProperties`, plus
+`rt.results` and, when `outputDir` is set, `rt.out`, a folder emptied first.
+It writes one `STATUS<tab>name<tab>detail` line per item to `rt.results`
+(`OK`, `FAIL` or `SKIP`), then `DONE`; a `FAIL` or a missing `DONE` fails the
+task.
+
+```kotlin
+tasks.register<RunScript>("generateFixtures") {
+    script = file("src/renderTest/make-fixtures.js")
+    systemProperties.put("out", file("src/renderTest/components").path)
+}
+```
+
+`textChecks` runs a script whose text output is compared with masters. A
+check named `defaults` adds `runDefaults`, `verifyDefaults` (part of `check`)
+and `updateDefaults`. A file that differs, has no master or was not written
+fails the check, listing the lines removed and added:
+
+```kotlin
+strangeEonsRenderTest {
+    textChecks.register("defaults") {
+        script = file("src/renderTest/dump-defaults.js")
+        scriptInputs.from(file("src/renderTest/lib"))  // other files it reads
+        masters = file("src/renderTest/defaults")
+        ignoreLineOrder = true                         // same lines, any order
+    }
+}
+```
 
 ## Masters per platform
 

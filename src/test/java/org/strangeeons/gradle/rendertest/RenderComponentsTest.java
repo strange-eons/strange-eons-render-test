@@ -101,6 +101,16 @@ class RenderComponentsTest {
         assertTrue(e.getMessage().contains("did not run"));
     }
 
+    @Test
+    void summaryFailsOnUncaughtScriptErrors(@TempDir Path dir) throws IOException {
+        RenderComponents.Fork a = fork(dir, "a", "OK\tcomponents/x\t2", "DONE");
+        Files.writeString(a.log(), "INFO started\nUncaught TypeError: x is undefined\n  at line 3\n");
+        RenderComponents.Summary s = RenderComponents.summarize(List.of(a));
+        assertEquals(1, s.ok());
+        assertEquals(1, s.failed().size());
+        assertTrue(s.failed().get(0).startsWith("1 uncaught script error(s)"), s.failed().get(0));
+    }
+
     private static RenderComponents.Fork fork(Path root, String name, String... lines) throws IOException {
         RenderComponents.Fork f = new RenderComponents.Fork(Files.createDirectories(root.resolve(name)), null, true);
         Files.write(f.results(), List.of(lines));

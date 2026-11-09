@@ -15,6 +15,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -56,6 +57,10 @@ public abstract class VerifyRenders extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getDiffs();
 
+    /** Renders checked against another render's master. */
+    @Nested
+    public abstract SharedMasters getSharedMasters();
+
     @TaskAction
     void verify() throws IOException {
         String platform = getPlatform().get();
@@ -82,7 +87,8 @@ public abstract class VerifyRenders extends DefaultTask {
             }
         }
 
-        List<ImageComparator.Result> results = ImageComparator.compare(getActual().get().getAsFile().toPath(), masters, diffs);
+        List<ImageComparator.Result> results = ImageComparator.compare(getActual().get().getAsFile().toPath(), masters, diffs,
+                getSharedMasters().plan());
         List<ImageComparator.Result> bad = results.stream().filter(r -> r.kind() != ImageComparator.Kind.MATCH).toList();
         getLogger().lifecycle("{} of {} image(s) match the '{}' masters", results.size() - bad.size(), results.size(), platform);
         if (!bad.isEmpty()) {

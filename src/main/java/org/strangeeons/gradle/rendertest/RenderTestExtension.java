@@ -1,5 +1,6 @@
 package org.strangeeons.gradle.rendertest;
 
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
@@ -17,6 +18,8 @@ import org.gradle.jvm.toolchain.JavaLauncher;
  *     bundles.from(tasks.named("sePlugin"))    // the plug-in's bundle and its libraries
  *     classMapGames.add("MYGAME")              // render a default of each class-map entry
  *     components = file("src/renderTest/components")  // and/or saved .eon/.eont files
+ *     renderSets.register("inkSaver") { ... }  // more renders, checked like these
+ *     textChecks.register("defaults") { ... }  // scripts whose text output is checked
  * }
  * </pre>
  */
@@ -112,4 +115,10 @@ public abstract class RenderTestExtension {
      * developer's own preferences applies.
      */
     public abstract MapProperty<String, String> getUserSettings();
+
+    /** More render sets, each with its own components, masters and settings. */
+    public abstract NamedDomainObjectContainer<RenderSet> getRenderSets();
+
+    /** Scripts whose text output is compared with masters. */
+    public abstract NamedDomainObjectContainer<TextCheck> getTextChecks();
 }

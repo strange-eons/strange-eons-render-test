@@ -12,6 +12,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -19,7 +20,8 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Replaces the masters of one platform with the current renders and records
- * the environment they came from. Masters of other platforms are untouched.
+ * the environment they came from. Masters of other platforms are untouched,
+ * and renders that share another render's master are not recorded.
  */
 @DisableCachingByDefault(because = "writes to the source tree")
 public abstract class UpdateRenderMasters extends DefaultTask {
@@ -41,6 +43,10 @@ public abstract class UpdateRenderMasters extends DefaultTask {
     @Input
     public abstract Property<String> getJavaRuntimeVersion();
 
+    /** Renders checked against another render's master; they are not recorded. */
+    @Nested
+    public abstract SharedMasters getSharedMasters();
+
     public UpdateRenderMasters() {
         getOutputs().upToDateWhen(t -> false);
     }
@@ -59,9 +65,12 @@ public abstract class UpdateRenderMasters extends DefaultTask {
             }
         }
         Files.createDirectories(to);
+        MasterPlan plan = getSharedMasters().plan();
         List<Path> files;
         try (Stream<Path> s = Files.walk(from)) {
-            files = s.filter(Files::isRegularFile).toList();
+            files = s.filter(Files::isRegularFile)
+                    .filter(f -> !plan.isShared(from.relativize(f).toString().replace('\\', '/')))
+                    .toList();
         }
         for (Path f : files) {
             Path dest = to.resolve(from.relativize(f).toString());
