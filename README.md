@@ -16,22 +16,22 @@ it already has:
 
 1. **`buildStrangeEons`** runs `:strange-eons-app:installDist` in your SE
    checkout using the checkout's own Gradle wrapper.
-2. **`packagePluginFolder`** zips an SE plug-in project folder into a bundle
-   the way SE's *Make Bundle* command does: web-safe header, hidden files,
-   `seproject`, `*.ts.js` and VCS folders left out. The bundle extension is
-   guessed the way SE guesses it (`.seext`, `.seplugin`, `.selibrary`).
-3. **`renderComponents`** starts SE once, hidden:
+2. **`renderComponents`** starts SE once, hidden:
    `--plugintest <bundles> --xDisablePluginLoading --run render.js`, with
    `STRANGE_EONS_USER_DIR` pointing at a fresh, empty user folder.
    The script renders saved `.eon` and `.eont` files and/or one default instance of every
    class-map entry of the games you name, and writes one PNG per sheet to
    `build/render-test/actual`.
-4. **`verifyRenders`** (part of `check`) compares them with the masters for
+3. **`verifyRenders`** (part of `check`) compares them with the masters for
    the platform the build runs on, `src/renderTest/masters/<platform>/`.
    Any differing pixel, size change, missing master or missing render fails
    the build. Magenta-on-grey diff images go to `build/render-test/diffs`.
-5. **`updateRenderMasters`** replaces the current platform's masters with
+4. **`updateRenderMasters`** replaces the current platform's masters with
    the current renders. Other platforms' masters are left alone.
+
+The plugin never builds bundles: it renders the ones listed in `bundles`, so
+the tests run against exactly what the build ships. Package the plug-in with
+the build that releases it, such as `org.strangeeons.plugin`.
 
 Each run uses a fresh SE user folder (via `STRANGE_EONS_USER_DIR`), so your
 installed plug-ins and preferences never affect the result. Set
@@ -56,10 +56,8 @@ plugins {
 }
 
 strangeEonsRenderTest {
-    // An SE plug-in project folder (holds eons-plugin and resources/) ...
-    pluginFolder = file("MyGame/MyGame")
-    // ... and/or bundles built elsewhere, plus every library they require.
-    // bundles.from(tasks.named("shadowJar"))
+    // The plug-in's bundle, plus every library it requires.
+    bundles.from(tasks.named("sePlugin"))
 
     // Render one default instance of each class-map entry for these games.
     classMapGames.add("MYGAME")
@@ -76,8 +74,7 @@ strangeEonsRenderTest {
 | Setting | Default |
 |---|---|
 | `strangeEonsDir` | `-PstrangeEonsDir`, else `../strange-eons` |
-| `pluginFolder`, `pluginBundleName` | none; name = folder name + guessed extension |
-| `bundles` | empty |
+| `bundles` | required |
 | `components` | none |
 | `classMapGames` | empty |
 | `masters` | `src/renderTest/masters` (root; one subfolder per platform) |
@@ -142,8 +139,6 @@ a plug-in change.
   example the GraalJS language bundle) to `bundles`.
 - **Class-map defaults** cover DIY and compiled entries. Scripted entries
   open an editor and are skipped with a warning: save an `.eon` instead.
-- **Java sources** in a plug-in project folder are not compiled (SE's Make
-  Bundle compiles them first).
 - **Render script is ES5.** It runs on Strange Rhino, which rejects arrow
   functions and similar syntax.
 - **Masters are large.** 93 sheets of the AHLCG plug-in at 150 ppi are about

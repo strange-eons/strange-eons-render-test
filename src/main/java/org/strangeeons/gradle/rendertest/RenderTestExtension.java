@@ -14,8 +14,7 @@ import org.gradle.jvm.toolchain.JavaLauncher;
  * <pre>
  * strangeEonsRenderTest {
  *     strangeEonsDir = file("../strange-eons")
- *     pluginFolder = file("MyGame/MyGame")      // an SE plug-in project folder, or
- *     bundles.from(tasks.named("shadowJar"))   // bundles built some other way
+ *     bundles.from(tasks.named("sePlugin"))    // the plug-in's bundle and its libraries
  *     classMapGames.add("MYGAME")              // render a default of each class-map entry
  *     components = file("src/renderTest/components")  // and/or saved .eon/.eont files
  * }
@@ -30,25 +29,11 @@ public abstract class RenderTestExtension {
     public abstract DirectoryProperty getStrangeEonsDir();
 
     /**
-     * An SE plug-in project folder (the folder holding {@code eons-plugin}
-     * and {@code resources/}). When set, it is packaged into a bundle the way
-     * SE's "Make Bundle" command does and added to the bundles under test.
-     */
-    public abstract DirectoryProperty getPluginFolder();
-
-    /**
-     * File name for the bundle packaged from {@link #getPluginFolder()},
-     * including the extension that tells SE how to load it ({@code .seext},
-     * {@code .seplugin}, {@code .selibrary}). Defaults to the folder name plus
-     * the extension SE itself would guess.
-     */
-    public abstract Property<String> getPluginBundleName();
-
-    /**
-     * Bundle files to load, in addition to the one packaged from
-     * {@link #getPluginFolder()}. Must include every library the plug-in
-     * requires: SE does not resolve {@code catalog-requires} for bundles passed
-     * on the command line.
+     * Bundle files to load: the plug-in under test and every library it
+     * requires, since SE does not resolve {@code catalog-requires} for bundles
+     * passed on the command line. Required; this plug-in never builds them.
+     * Each file's extension tells SE how to load it ({@code .seext},
+     * {@code .seplugin}, {@code .selibrary}).
      */
     public abstract ConfigurableFileCollection getBundles();
 

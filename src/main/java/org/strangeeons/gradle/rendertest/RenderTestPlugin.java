@@ -1,7 +1,5 @@
 package org.strangeeons.gradle.rendertest;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -19,7 +17,6 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
  *
  * <ul>
  * <li>{@code buildStrangeEons}: builds SE from the configured checkout</li>
- * <li>{@code packagePluginFolder}: bundles the SE plug-in project folder</li>
  * <li>{@code renderComponents}: renders components to PNG</li>
  * <li>{@code verifyRenders}: compares renders with masters (part of {@code check})</li>
  * <li>{@code updateRenderMasters}: replaces masters with the current renders</li>
@@ -67,29 +64,12 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
             t.getLauncher().set(ext.getLauncher());
         });
 
-        TaskProvider<PackagePluginFolder> pack = project.getTasks().register("packagePluginFolder", PackagePluginFolder.class, t -> {
-            t.setGroup(GROUP);
-            t.setDescription("Packages the SE plug-in project folder into a bundle.");
-            t.onlyIf("pluginFolder is set", x -> ext.getPluginFolder().isPresent());
-            t.getFolder().set(ext.getPluginFolder());
-            Provider<String> name = ext.getPluginBundleName().orElse(ext.getPluginFolder().map(f -> {
-                try {
-                    return f.getAsFile().getName() + BundlePackager.guessExtension(f.getAsFile().toPath());
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }));
-            t.getBundle().set(buildDir.dir("render-test/bundles").zip(name, Directory::file));
-        });
-
         TaskProvider<RenderComponents> render = project.getTasks().register("renderComponents", RenderComponents.class, t -> {
             t.setGroup(GROUP);
             t.setDescription("Renders components with Strange Eons and writes one PNG per sheet.");
             t.getApplicationClasspath().from(buildSe.flatMap(b -> b.getInstallDir().dir("lib"))
                     .map(d -> d.getAsFileTree().matching(p -> p.include("*.jar"))));
             t.getApplicationClasspath().builtBy(buildSe);
-            t.getBundles().from(ext.getPluginFolder().flatMap(f -> pack.flatMap(PackagePluginFolder::getBundle)));
-            t.getBundles().builtBy(pack);
             t.getBundles().from(ext.getBundles());
             t.getComponents().set(ext.getComponents());
             t.getClassMapGames().set(ext.getClassMapGames());

@@ -131,6 +131,10 @@ public abstract class RenderComponents extends DefaultTask {
 
     @TaskAction
     void render() throws IOException {
+        List<File> bundles = new ArrayList<>(getBundles().getFiles());
+        if (bundles.isEmpty()) {
+            throw new GradleException("No bundles to test. Add the plug-in's bundle to strangeEonsRenderTest.bundles.");
+        }
         Path out = getOutputDir().get().getAsFile().toPath();
         Path work = getWorkDir().get().getAsFile().toPath();
         deleteTree(out);
@@ -141,10 +145,6 @@ public abstract class RenderComponents extends DefaultTask {
             Files.copy(in, script, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        List<File> bundles = new ArrayList<>(getBundles().getFiles());
-        if (bundles.isEmpty()) {
-            throw new GradleException("No bundles to test. Set strangeEonsRenderTest.pluginFolder or bundles.");
-        }
         boolean hasComponents = getComponents().isPresent() && getComponents().get().getAsFile().isDirectory();
         if (!hasComponents && getClassMapGames().get().isEmpty()) {
             throw new GradleException("Nothing to render. Set strangeEonsRenderTest.components and/or classMapGames.");
