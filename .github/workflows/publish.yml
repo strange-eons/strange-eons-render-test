@@ -27,6 +27,8 @@ jobs:
           distribution: temurin
           java-version: 25
       - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.8.2'
       - run: ./gradlew check
       - name: Publish snapshot
         if: github.ref_type == 'branch'
