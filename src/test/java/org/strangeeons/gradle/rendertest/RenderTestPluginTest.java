@@ -91,6 +91,35 @@ class RenderTestPluginTest {
     }
 
     @Test
+    void renderBleedIsOffUnlessSet() {
+        Project p = project();
+        ext(p).getRenderSets().register("withBleed", set -> {
+            set.getComponents().set(tmp.resolve("flexible").toFile());
+            set.getMasters().set(tmp.resolve("bleed-masters").toFile());
+            set.getRenderBleed().set(true);
+        });
+        ext(p).getRenderSets().register("trimmed", set -> {
+            set.getComponents().set(tmp.resolve("flexible").toFile());
+            set.getMasters().set(tmp.resolve("trimmed-masters").toFile());
+        });
+        RenderComponents main = (RenderComponents) p.getTasks().getByName("renderComponents");
+        RenderComponents withBleed = (RenderComponents) p.getTasks().getByName("renderWithBleed");
+        RenderComponents trimmed = (RenderComponents) p.getTasks().getByName("renderTrimmed");
+        assertFalse(main.getRenderBleed().get());
+        assertTrue(withBleed.getRenderBleed().get());
+        assertFalse(trimmed.getRenderBleed().get());
+
+        StrangeEonsTask.Fork fork = new StrangeEonsTask.Fork(tmp, null, true);
+        assertEquals("true", withBleed.properties(fork, tmp, false).get("rt.bleed"));
+        assertEquals("false", main.properties(fork, tmp, false).get("rt.bleed"));
+
+        // sets follow the extension unless set
+        ext(p).getRenderBleed().set(true);
+        assertTrue(main.getRenderBleed().get());
+        assertTrue(trimmed.getRenderBleed().get());
+    }
+
+    @Test
     void textCheckAddsRunVerifyAndUpdate() {
         Project p = project();
         ext(p).getBundles().from("a.seext");

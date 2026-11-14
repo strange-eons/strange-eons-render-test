@@ -35,6 +35,7 @@ var listFile = prop("rt.list");
 var games = prop("rt.classmap") == "false" ? [] : prop("rt.games").split(",").filter(function (g) { return g.length > 0; });
 var dpi = Number(prop("rt.dpi"));
 var backs = prop("rt.backs") != "false";
+var bleed = prop("rt.bleed") == "true";
 var results = new PrintWriter(new OutputStreamWriter(new FileOutputStream(prop("rt.results")), "UTF-8"));
 
 function record(status, name, detail) {
@@ -53,6 +54,8 @@ function render(gc, name) {
     var written = 0;
     for (var i = 0; i < sheets.length; ++i) {
         if (!backs && isBack(gc, i)) continue;
+        // the designed margin, as painted; 0 crops to the trim edge
+        if (bleed) sheets[i].setUserBleedMargin(sheets[i].getBleedMargin());
         var img = sheets[i].paint(RenderTarget.EXPORT, dpi);
         var f = new File(outDir, name + "-" + i + ".png");
         f.getParentFile().mkdirs();

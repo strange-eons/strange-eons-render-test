@@ -50,6 +50,10 @@ public abstract class RenderComponents extends StrangeEonsTask {
     @Input
     public abstract Property<Boolean> getRenderBacks();
 
+    /** Whether sheets keep their designed bleed margin. */
+    @Input
+    public abstract Property<Boolean> getRenderBleed();
+
     /**
      * How many Strange Eons processes render at once. Saved components are
      * split between them; class-map entries all render in the first. Each
@@ -105,13 +109,14 @@ public abstract class RenderComponents extends StrangeEonsTask {
         }
     }
 
-    private Map<String, String> properties(Fork f, Path out, boolean hasComponents) {
+    Map<String, String> properties(Fork f, Path out, boolean hasComponents) {
         Map<String, String> p = new LinkedHashMap<>();
         p.put("rt.out", out.toAbsolutePath().toString());
         p.put("rt.components", hasComponents ? getComponents().get().getAsFile().getAbsolutePath() : "");
         p.put("rt.games", String.join(",", getClassMapGames().get()));
         p.put("rt.dpi", String.valueOf(getResolution().get()));
         p.put("rt.backs", String.valueOf(getRenderBacks().get()));
+        p.put("rt.bleed", String.valueOf(getRenderBleed().get()));
         if (f.list() != null) {
             p.put("rt.list", f.list().toAbsolutePath().toString());
         }

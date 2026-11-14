@@ -110,6 +110,13 @@ public abstract class RenderTestExtension {
     public abstract Property<Boolean> getRenderBacks();
 
     /**
+     * Whether to render each sheet with its designed bleed margin, as it is
+     * painted, instead of cropped to the trim edge. Nothing is synthesized
+     * for sheets without one. Defaults to {@code false}.
+     */
+    public abstract Property<Boolean> getRenderBleed();
+
+    /**
      * SE preferences for the run, e.g. a plug-in option to render with.
      * Each run starts from an empty user folder, so nothing else from the
      * developer's own preferences applies.

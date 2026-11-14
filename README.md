@@ -89,6 +89,7 @@ strangeEonsRenderTest {
 | `jvmArgs` | none, added to the two flags SE's own `run` task passes |
 | `userSettings` | empty: SE preferences written to the fresh user folder |
 | `renderBacks` | `true`; `false` skips DIY back faces (odd-numbered sheets) |
+| `renderBleed` | `false`; `true` keeps each sheet's designed bleed margin instead of cropping to the trim edge |
 
 Output names: `components/<path>-<sheet>.png` for `.eon` and `.eont` files
 (`x.eon` and `x.eont` render under the same name), and
@@ -98,7 +99,8 @@ keep their index when backs are skipped, so fronts are `-0`, `-2` and so on.
 ## More render sets
 
 `renderSets` adds sets of renders with their own components, masters and
-preferences, each checked like the main set. A set named `inkSaver` adds
+preferences, each checked like the main set; `renderBacks` and `renderBleed`
+default to the extension's. A set named `inkSaver` adds
 `renderInkSaver`, `verifyInkSaverRenders` (part of `check`) and
 `updateInkSaverRenderMasters`:
 

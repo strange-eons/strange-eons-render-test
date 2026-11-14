@@ -31,6 +31,9 @@ public abstract class RenderSet implements Named {
     /** Defaults to the extension's {@code renderBacks}. */
     public abstract Property<Boolean> getRenderBacks();
 
+    /** Defaults to the extension's {@code renderBleed}. */
+    public abstract Property<Boolean> getRenderBleed();
+
     @Nested
     public abstract SharedMasters getSharedMasters();
 

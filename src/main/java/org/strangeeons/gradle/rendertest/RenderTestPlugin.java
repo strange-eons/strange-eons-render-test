@@ -51,6 +51,7 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
         ext.getGameLanguage().convention("en");
         ext.getUiLanguage().convention("en");
         ext.getRenderBacks().convention(true);
+        ext.getRenderBleed().convention(false);
         ext.getHeadless().convention(project.getProviders().gradleProperty("renderTestHeadless")
                 .map(Boolean::parseBoolean).orElse(false));
         ext.getForks().convention(project.getProviders().gradleProperty("renderTestForks")
@@ -85,6 +86,7 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
         tasks.withType(RenderComponents.class).configureEach(t -> {
             t.getResolution().convention(ext.getResolution());
             t.getRenderBacks().convention(ext.getRenderBacks());
+            t.getRenderBleed().convention(ext.getRenderBleed());
             t.getForks().convention(ext.getForks());
             t.getClassMapGames().convention(ext.getClassMapGames());
         });
@@ -117,6 +119,7 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
         ext.getRenderSets().all(set -> {
             String name = capitalize(set.getName());
             set.getRenderBacks().convention(ext.getRenderBacks());
+            set.getRenderBleed().convention(ext.getRenderBleed());
             String dir = "render-test/" + set.getName();
             TaskProvider<RenderComponents> setRender = tasks.register("render" + name, RenderComponents.class, t -> {
                 t.setGroup(GROUP);
@@ -124,6 +127,7 @@ public abstract class RenderTestPlugin implements Plugin<Project> {
                 t.getComponents().set(set.getComponents());
                 t.getClassMapGames().set(set.getClassMapGames());
                 t.getRenderBacks().set(set.getRenderBacks());
+                t.getRenderBleed().set(set.getRenderBleed());
                 t.getUserSettings().set(ext.getUserSettings());
                 t.getUserSettings().putAll(set.getUserSettings());
                 t.getOutputDir().set(buildDir.dir(dir + "/actual"));
